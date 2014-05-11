@@ -78,6 +78,7 @@
   <ItemGroup>
     <None Include="..\Resources\Programs\change_register.vmexe" />
     <None Include="..\Resources\Programs\change_register_in_loop.vmexe" />
+    <None Include="..\Resources\Programs\read_write_to_virtual_memory.vmexe" />
     <None Include="..\Resources\Sources\change_register.vmasm" />
     <None Include="..\Resources\Sources\change_register_in_loop.vmasm" />
     <None Include="..\Resources\Sources\read_write_to_virtual_memory.vmasm" />

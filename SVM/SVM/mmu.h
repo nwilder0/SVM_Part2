@@ -24,7 +24,7 @@ namespace vm
         static const ram_size_type RAM_SIZE = 0xFFFF; // 64 KB
         static const ram_size_type PAGE_SIZE = 0x80;  // 128 B
 
-        static const ram_size_type INVALID_PAGE = -1;
+        static const ram_size_type INVALID_PAGE = 0;
 
         ram_type ram;
         page_table_type* page_table;

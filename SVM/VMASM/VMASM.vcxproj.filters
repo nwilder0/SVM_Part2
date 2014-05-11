@@ -37,5 +37,8 @@
     <None Include="..\Resources\Sources\read_write_to_virtual_memory.vmasm">
       <Filter>VMASM Sources</Filter>
     </None>
+    <None Include="..\Resources\Programs\read_write_to_virtual_memory.vmexe">
+      <Filter>VM Executables</Filter>
+    </None>
   </ItemGroup>
 </Project>

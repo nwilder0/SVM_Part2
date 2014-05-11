@@ -175,8 +175,9 @@ namespace vm
                     } else {
                         std::copy(ops.begin(), ops.end(), (machine.mmu.ram.begin() + new_memory_position));
 
-                        Process process(_last_issued_process_id++, new_memory_position,
+                        Process *process = new Process(_last_issued_process_id++, new_memory_position,
                                                                    new_memory_position + ops.size());
+						processes.push_back(*process);
 
                         // Old sequential allocation
                         //
@@ -196,15 +197,17 @@ namespace vm
     {
 		MMU::ram_size_type new_allocation = -1;
 		MMU::header *current;
+		MMU::ram_size_type frame_units;
 
 		if(process) 
 		{	
 			current = process->blocklist;
+			frame_units = units / MMU::PAGE_SIZE + 1;
 		} else {
 			current = machine.mmu.real_list;
+			frame_units = (units / MMU::PAGE_SIZE + 1)*MMU::PAGE_SIZE;
 		}
 
-		MMU::ram_size_type frame_units = units / MMU::PAGE_SIZE + 1;
 
 		while(current) {
 			if(current->free && current->size >= frame_units) {

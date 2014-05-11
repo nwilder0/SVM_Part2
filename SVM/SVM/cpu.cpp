@@ -92,7 +92,7 @@ namespace vm
 
 			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
 			frame = _mmu.page_table->at(page_index_and_offset.first);
-			if (frame== MMU::INVALID_PAGE) {
+			if (frame == MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
 				registers.a = page_index_and_offset.first;

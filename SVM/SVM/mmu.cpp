@@ -22,7 +22,11 @@ namespace vm
 
     MMU::page_table_type* MMU::CreateEmptyPageTable()
     {
-		return new page_table_type(RAM_SIZE / PAGE_SIZE);
+		MMU::page_table_type *table = new page_table_type(RAM_SIZE / PAGE_SIZE);
+		for(int i=0; i<RAM_SIZE / PAGE_SIZE; i++) {
+			(*table)[i] = MMU::INVALID_PAGE;
+		}
+		return table;
     }
 
 	MMU::header* MMU::CreateNewVMBlockList() 
