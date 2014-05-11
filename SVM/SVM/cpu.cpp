@@ -48,6 +48,41 @@ namespace vm
 				registers.a = _mmu.ram[frame + page_index_and_offset.second];
 				registers.ip += 2;
 			}
+			break;
+
+		case CPU::LDB_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
+
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
+
+			} else {
+				registers.b = _mmu.ram[frame + page_index_and_offset.second];
+				registers.ip += 2;
+			}
+			break;
+
+		case CPU::LDC_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
+
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
+
+			} else {
+				registers.c = _mmu.ram[frame + page_index_and_offset.second];
+				registers.ip += 2;
+			}
+			break;
+
+
 /*
 				Get the page index and physical address offset from MMU for a virtual address in 'data'
 				Get the page from the current page table in MMU with the acquired index
@@ -62,19 +97,54 @@ namespace vm
 				
 					Increment the instruction pointer
 */
-				break;
-			/* TODO:
-			case CPU::LDB_BASE_OPCODE:
-				...
+		case CPU::STA_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
 
-				break;
-			case ...
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
 
-			case CPU::STA_BASE_OPCODE:
-				...
+			} else {
+				_mmu.ram[frame + page_index_and_offset.second] = registers.a;
+				registers.ip += 2;
+			}
+			break;
 
-				break;
-		*/
+		case CPU::STB_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
+
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
+
+			} else {
+				_mmu.ram[frame + page_index_and_offset.second] = registers.b;
+				registers.ip += 2;
+			}
+			break;
+
+		case CPU::STC_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
+
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
+
+			} else {
+				_mmu.ram[frame + page_index_and_offset.second] = registers.c;
+				registers.ip += 2;
+			}
+			break;
+
         case CPU::JMP_BASE_OPCODE:
             registers.ip += data;
 

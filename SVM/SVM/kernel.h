@@ -32,14 +32,15 @@ namespace vm
         Scheduler scheduler;
 
 		MMU::page_table_type *page_table;
+		MMU::header *blocklist;
 
         Kernel(Scheduler scheduler, std::vector<std::string> executables_paths);
         virtual ~Kernel();
 
         void CreateProcess(const std::string &name);
 
-        MMU::ram_size_type AllocateMemory(MMU::ram_size_type units);
-        void FreeMemory(MMU::ram_size_type physical_memory_index);
+        MMU::ram_size_type AllocateMemory(MMU::ram_size_type units, Process *process);
+        void FreeMemory(MMU::ram_size_type physical_memory_index, Process *process);
 
     private:
         static const unsigned int _MAX_CYCLES_BEFORE_PREEMPTION = 5;

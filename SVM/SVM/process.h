@@ -32,6 +32,8 @@ namespace vm
 
         MMU::page_table_type *page_table;
 
+		MMU::header *blocklist;
+
         Process(process_id_type id, MMU::ram_size_type memory_start_position,
                                     MMU::ram_size_type memory_end_position);
 

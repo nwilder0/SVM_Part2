@@ -13,11 +13,21 @@ namespace vm
         sequential_instruction_count = (memory_end_position - memory_start_position) / 2;
 
         page_table = MMU::CreateEmptyPageTable();
+		blocklist = MMU::CreateNewVMBlockList();
     }
 
     Process::~Process()
     {
-        delete page_table;
+        MMU::header *prev;
+
+		while(blocklist) {
+			prev = blocklist;
+			blocklist = blocklist->next;
+			
+			delete prev;
+		}
+		delete page_table;
+		
     }
 
     bool Process::operator<(const Process &anotherProcess) const {

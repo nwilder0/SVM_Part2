@@ -24,7 +24,7 @@ namespace vm
         static const ram_size_type RAM_SIZE = 0xFFFF; // 64 KB
         static const ram_size_type PAGE_SIZE = 0x80;  // 128 B
 
-        static const ram_size_type INVALID_PAGE = 0;
+        static const ram_size_type INVALID_PAGE = -1;
 
         ram_type ram;
         page_table_type* page_table;
@@ -38,10 +38,13 @@ namespace vm
 
 		header* blocklist;
 
+		header* real_list;
+
         MMU();
         virtual ~MMU();
 
         static page_table_type* CreateEmptyPageTable();
+		static header* CreateNewVMBlockList();
 
         page_index_offset_pair_type GetPageIndexAndOffsetForVirtualAddress(vmem_size_type address);
 

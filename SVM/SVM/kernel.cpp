@@ -19,6 +19,9 @@ namespace vm
 		machine.mmu.ram[0] = _free_physical_memory_index = 0;
 		machine.mmu.ram[1] = machine.mmu.ram.size() - 2;
 
+		//this->page_table = MMU::CreateEmptyPageTable();
+		//this->blocklist = MMU::CreateNewVMBlockList();
+
         // Process page faults (find an empty frame)
         machine.pic.isr_4 = [&]() {
             std::cout << "Kernel: page fault." << std::endl;
@@ -31,7 +34,7 @@ namespace vm
 
 				(*(machine.mmu.page_table))[page] = frame;
 			} else {
-
+				std::cout << "Kernel: Error on Page Fault - Process: " << processes[_current_process_index].id << " skipping instruction: " << machine.cpu.registers.ip << std::endl;
 				machine.cpu.registers.ip += 2;
 				// or machine.Stop();
 			}
@@ -48,6 +51,7 @@ namespace vm
 
             machine.cpu.registers = processes[_current_process_index].registers;
 			machine.mmu.page_table = processes[_current_process_index].page_table;
+			machine.mmu.blocklist = processes[_current_process_index].blocklist;
 			
             processes[_current_process_index].state = Process::Running;
         }
@@ -80,6 +84,7 @@ namespace vm
 
                             machine.cpu.registers = processes[_current_process_index].registers;
 							machine.mmu.page_table = processes[_current_process_index].page_table;
+							machine.mmu.blocklist = processes[_current_process_index].blocklist;
 							
                             processes[_current_process_index].state = Process::Running;
                         }
@@ -96,8 +101,14 @@ namespace vm
 
                 if (!processes.empty()) {
                     std::cout << "Kernel: unloading the process " << processes[_current_process_index].id << std::endl;
-
-					// TODO: free process memory with FreePhysicalMemory
+					
+					//clear out the process' VM
+					for(int i = 0; i<processes[_current_process_index].page_table->size(); i++) {
+						machine.mmu.ReleaseFrame((*(processes[_current_process_index].page_table))[i]);
+					}
+					//send the start position of the memory to be freed
+					FreeMemory(processes[_current_process_index].memory_start_position,NULL);
+					
                     processes.erase(processes.begin() + _current_process_index);
 
                     if (processes.empty()) {
@@ -115,6 +126,7 @@ namespace vm
 
                         machine.cpu.registers = processes[_current_process_index].registers;
 						machine.mmu.page_table = processes[_current_process_index].page_table;
+						machine.mmu.blocklist = processes[_current_process_index].blocklist;
 						
                         processes[_current_process_index].state = Process::Running;
 
@@ -155,8 +167,9 @@ namespace vm
                 if (input_stream.bad()) {
                     std::cerr << "Kernel: failed to read the program file." << std::endl;
                 } else {
-					ops.size();
-                    MMU::ram_size_type new_memory_position = AllocateMemory(ops.size()); // TODO: allocate memory for the process (AllocateMemory)
+
+					// get the position of the first-fit memory location with sufficient size
+                    MMU::ram_size_type new_memory_position = AllocateMemory(ops.size(),NULL);
                     if (new_memory_position == -1) {
                         std::cerr << "Kernel: failed to allocate memory." << std::endl;
                     } else {
@@ -179,52 +192,53 @@ namespace vm
         }
     }
 
-    MMU::ram_size_type Kernel::AllocateMemory(MMU::ram_size_type units)
+    MMU::ram_size_type Kernel::AllocateMemory(MMU::ram_size_type units, Process *process)
     {
-		MMU::header *current = machine.mmu.blocklist;
 		MMU::ram_size_type new_allocation = -1;
+		MMU::header *current;
+
+		if(process) 
+		{	
+			current = process->blocklist;
+		} else {
+			current = machine.mmu.real_list;
+		}
+
+		MMU::ram_size_type frame_units = units / MMU::PAGE_SIZE + 1;
 
 		while(current) {
-			if(current->free && current->size >= units) {
+			if(current->free && current->size >= frame_units) {
 
 				// alloc from this block
 				new_allocation = current->block;
 				current->free = false;
 
-				if(current->size > units) {
+				if(current->size > frame_units) {
 					MMU::header *tail = new MMU::header();
-					tail->block = current->block + units;
+					tail->block = current->block + frame_units;
 					tail->next = current->next;
 					tail->free = true;
-					tail->size = current->size - units;
-					
+					tail->size = current->size - frame_units;
+				
 					current->next = tail;
-					current->size = units;
+					current->size = frame_units;
 				}
 			} else {
 				current = current->next;
 			}
 		}
-		/*
-			TODO:
-			
-			Task 1: allocate physical memory by using a free list with the next fit
-				approach.
-
-			You can adapt the algorithm from the book 
-				The C Programming Language (Second Edition) 
-				by Brian W. Kernighan and Dennis M. Ritchie
-					(8.7 Example - A Storage Allocator).
-
-			Task 2: adapt the algorithm to work with your virtual memory subsystem.
-		*/
-
 		return new_allocation;
     }
 
-    void Kernel::FreeMemory(MMU::ram_size_type physical_memory_index)
+    void Kernel::FreeMemory(MMU::ram_size_type physical_memory_index, Process *process)
     {
-		MMU::header *current = machine.mmu.blocklist;
+		MMU::header *current;
+		if(process) {
+			current = process->blocklist;
+		} else {
+			current = machine.mmu.real_list;
+		}
+
 		MMU::header *prev = NULL;
 
 		while(current) {
@@ -250,19 +264,7 @@ namespace vm
 				prev = current;
 				current = current->next;
 			}
-
 		}
-		/*
-			TODO:
-			
-			Task 1: free physical memory
 
-			You can adapt the algorithm from the book 
-				The C Programming Language (Second Edition) 
-				by Brian W. Kernighan and Dennis M. Ritchie
-					(8.7 Example - A Storage Allocator).
-
-			Task 2: adapt the algorithm to work with your virtual memory subsystem
-		*/
     }
 }
