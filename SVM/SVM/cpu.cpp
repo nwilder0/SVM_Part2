@@ -34,10 +34,21 @@ namespace vm
             registers.ip += 2;
 
             break;
-		/*
-			TODO:
+		case CPU::LDA_BASE_OPCODE:
+			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+			if (frame== MMU::INVALID_PAGE) {
 
-			case CPU::LDA_BASE_OPCODE:
+				int temp = registers.a;
+				registers.a = page_index_and_offset.first;
+				_pic.isr_4();
+				registers.a = temp;
+
+			} else {
+				registers.a = _mmu.ram[frame + page_index_and_offset.second];
+				registers.ip += 2;
+			}
+/*
 				Get the page index and physical address offset from MMU for a virtual address in 'data'
 				Get the page from the current page table in MMU with the acquired index
 				If the page is invalid
@@ -50,8 +61,9 @@ namespace vm
 					Read or write (for ST...) from/to the physical memory with the calculated address
 				
 					Increment the instruction pointer
-
+*/
 				break;
+			/* TODO:
 			case CPU::LDB_BASE_OPCODE:
 				...
 

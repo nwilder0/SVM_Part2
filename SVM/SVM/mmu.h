@@ -7,7 +7,7 @@
 
 namespace vm
 {
-    class MMU
+	class MMU
     {
     public:
         typedef std::vector<int> ram_type;
@@ -29,6 +29,15 @@ namespace vm
         ram_type ram;
         page_table_type* page_table;
 
+		struct header {
+			header* next;
+			ram_size_type block;
+			ram_size_type size;
+			bool free;
+		};
+
+		header* blocklist;
+
         MMU();
         virtual ~MMU();
 
@@ -40,8 +49,9 @@ namespace vm
         void ReleaseFrame(page_entry_type page);
 
     private:
-		// TODO: data structures used by the frame allocator
+		std::stack<page_entry_type> free_frames;
     };
+    
 }
 
 #endif

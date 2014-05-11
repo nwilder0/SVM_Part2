@@ -16,23 +16,16 @@ static const int MOVA_BASE_OPCODE = 0x10;
 static const int MOVB_BASE_OPCODE = MOVA_BASE_OPCODE + 1;
 static const int MOVC_BASE_OPCODE = MOVA_BASE_OPCODE + 2;
 
-/*
-	TODO:
+static const char *LD_OPCODE_TOKEN = "ld";
+static const int LDA_BASE_OPCODE = 0x20;
+static const int LDB_BASE_OPCODE = LDA_BASE_OPCODE + 1;
+static const int LDC_BASE_OPCODE = LDA_BASE_OPCODE + 2;
 
-	static const char *LD_OPCODE_TOKEN = "ld";
+static const char *ST_OPCODE_TOKEN = "st";
+static const int STA_BASE_OPCODE = 0x30;
+static const int STB_BASE_OPCODE = STA_BASE_OPCODE + 1;
+static const int STC_BASE_OPCODE = STA_BASE_OPCODE + 2;
 
-	static const int LDA_BASE_OPCODE = 0x20;
-	...
-*/
-
-/*
-	TODO:
-
-	static const char *ST_OPCODE_TOKEN = "st";
-
-	static const int STA_BASE_OPCODE = 0x30;
-	...
-*/
 
 static const char *JMP_OPCODE_TOKEN = "jmp";
 static const int JMP_BASE_OPCODE = 0x40;
@@ -101,14 +94,67 @@ int main(int argc, char *argv[])
 
                         return -1;
                     }
-                } /*
-				  TODO:
-				  
-				  if (token == LD_OPCODE_TOKEN) {
-					...
+                } if (token == LD_OPCODE_TOKEN) {
+					int instruction, data;
+                    if (tokens >> token) {
+                        std::transform(token.begin(), token.end(), token.begin(), tolower);
+						
+                        if (token == REGISTER_A_TOKEN) {
+                            instruction = LDA_BASE_OPCODE;
+                        } else if (token == REGISTER_B_TOKEN) {
+                            instruction = LDB_BASE_OPCODE;
+                        } else if (token == REGISTER_C_TOKEN) {
+                            instruction = LDC_BASE_OPCODE;
+                        } else {
+                            std::cerr << "Invalid register specifier." << std::endl;
+
+                            return -1;
+                        }
+
+                        if (!(tokens >> data)) {
+                            std::cerr << "Invalid immediate value." << std::endl;
+
+                            return -1;
+                        }
+
+                        ops.push_back(instruction);
+                        ops.push_back(data);
+                    } else {
+                        std::cerr << "Invalid assembly statement." << std::endl;
+
+                        return -1;
+                    }
 				} if (token == ST_OPCODE_TOKEN) {
-					...
-                */ else if (token == JMP_OPCODE_TOKEN) {
+					int instruction, data;
+                    if (tokens >> token) {
+                        std::transform(token.begin(), token.end(), token.begin(), tolower);
+
+                        if (token == REGISTER_A_TOKEN) {
+                            instruction = STA_BASE_OPCODE;
+                        } else if (token == REGISTER_B_TOKEN) {
+                            instruction = STB_BASE_OPCODE;
+                        } else if (token == REGISTER_C_TOKEN) {
+                            instruction = STC_BASE_OPCODE;
+                        } else {
+                            std::cerr << "Invalid register specifier." << std::endl;
+
+                            return -1;
+                        }
+
+                        if (!(tokens >> data)) {
+                            std::cerr << "Invalid immediate value." << std::endl;
+
+                            return -1;
+                        }
+
+                        ops.push_back(instruction);
+                        ops.push_back(data);
+                    } else {
+                        std::cerr << "Invalid assembly statement." << std::endl;
+
+                        return -1;
+                    }
+				} else if (token == JMP_OPCODE_TOKEN) {
                     int instruction = JMP_BASE_OPCODE;
 
                     int data;

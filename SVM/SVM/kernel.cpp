@@ -16,27 +16,25 @@ namespace vm
     {
         // Memory
 
-		/*
-			TODO:
-			
-			Initialize data structures for methods:
-				AllocateMemory, FreeMemory
-		*/
+		machine.mmu.ram[0] = _free_physical_memory_index = 0;
+		machine.mmu.ram[1] = machine.mmu.ram.size() - 2;
 
         // Process page faults (find an empty frame)
         machine.pic.isr_4 = [&]() {
             std::cout << "Kernel: page fault." << std::endl;
 
-			/*
-				TODO:
+			MMU::page_entry_type page = machine.cpu.registers.a;
 
-				Get the faulting page index from register 'a'
+			MMU::page_entry_type frame = machine.mmu.AcquireFrame();
 
-				Try to acquire a new frame from MMU (AcquireFrame)
-				Check if this frame is valid
-					if valid, write the frame to the current faulting page in the MMU page table (at index from register 'a')
-					or else, notify the process or stop the machine (out of physical memory)
-			*/
+			if(frame != MMU::INVALID_PAGE) {
+
+				(*(machine.mmu.page_table))[page] = frame;
+			} else {
+
+				machine.cpu.registers.ip += 2;
+				// or machine.Stop();
+			}
         };
 
         // Process Management
@@ -49,8 +47,8 @@ namespace vm
             std::cout << "Kernel: setting the first process: " << processes[_current_process_index].id << " for execution." << std::endl;
 
             machine.cpu.registers = processes[_current_process_index].registers;
-			// TODO: switch the page table in MMU to the table of the current process
-
+			machine.mmu.page_table = processes[_current_process_index].page_table;
+			
             processes[_current_process_index].state = Process::Running;
         }
 
@@ -81,8 +79,8 @@ namespace vm
                             std::cout << " to process " << processes[_current_process_index].id << std::endl;
 
                             machine.cpu.registers = processes[_current_process_index].registers;
-							// TODO: switch the page table in MMU to the table of the current process
-
+							machine.mmu.page_table = processes[_current_process_index].page_table;
+							
                             processes[_current_process_index].state = Process::Running;
                         }
 
@@ -116,8 +114,8 @@ namespace vm
                         std::cout << "Kernel: switching the context to process " << processes[_current_process_index].id << std::endl;
 
                         machine.cpu.registers = processes[_current_process_index].registers;
-						// TODO: switch the page table in MMU to the table of the current process
-
+						machine.mmu.page_table = processes[_current_process_index].page_table;
+						
                         processes[_current_process_index].state = Process::Running;
 
                         _cycles_passed_after_preemption = 0;
@@ -157,7 +155,8 @@ namespace vm
                 if (input_stream.bad()) {
                     std::cerr << "Kernel: failed to read the program file." << std::endl;
                 } else {
-                    MMU::ram_size_type new_memory_position = -1; // TODO: allocate memory for the process (AllocateMemory)
+					ops.size();
+                    MMU::ram_size_type new_memory_position = AllocateMemory(ops.size()); // TODO: allocate memory for the process (AllocateMemory)
                     if (new_memory_position == -1) {
                         std::cerr << "Kernel: failed to allocate memory." << std::endl;
                     } else {
@@ -182,6 +181,30 @@ namespace vm
 
     MMU::ram_size_type Kernel::AllocateMemory(MMU::ram_size_type units)
     {
+		MMU::header *current = machine.mmu.blocklist;
+		MMU::ram_size_type new_allocation = -1;
+
+		while(current) {
+			if(current->free && current->size >= units) {
+
+				// alloc from this block
+				new_allocation = current->block;
+				current->free = false;
+
+				if(current->size > units) {
+					MMU::header *tail = new MMU::header();
+					tail->block = current->block + units;
+					tail->next = current->next;
+					tail->free = true;
+					tail->size = current->size - units;
+					
+					current->next = tail;
+					current->size = units;
+				}
+			} else {
+				current = current->next;
+			}
+		}
 		/*
 			TODO:
 			
@@ -196,11 +219,39 @@ namespace vm
 			Task 2: adapt the algorithm to work with your virtual memory subsystem.
 		*/
 
-		return -1;
+		return new_allocation;
     }
 
     void Kernel::FreeMemory(MMU::ram_size_type physical_memory_index)
     {
+		MMU::header *current = machine.mmu.blocklist;
+		MMU::header *prev = NULL;
+
+		while(current) {
+			if(current->block == physical_memory_index) {
+				current->free = true;
+				if(prev) {
+					if(prev->free) {
+						// merge
+						prev->next = current->next;
+						prev->size += current->size;
+						current = prev;
+					}
+				}
+				if(current->next) {
+					if(current->next->free) {
+						//merge
+						current->size += current->next->size;
+						current->next = current->next->next;
+					}
+				}
+				current = NULL;
+			} else {
+				prev = current;
+				current = current->next;
+			}
+
+		}
 		/*
 			TODO:
 			
