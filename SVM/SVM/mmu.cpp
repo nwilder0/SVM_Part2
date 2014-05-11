@@ -70,7 +70,7 @@ namespace vm
 				current = current->next;
 			}
 		}
-
+		return result;
     }
     
     void MMU::ReleaseFrame(page_entry_type page)

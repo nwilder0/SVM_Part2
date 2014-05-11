@@ -17,6 +17,8 @@ namespace vm
 
         int instruction = _mmu.ram[ip];
         int data = _mmu.ram[ip + 1];
+		MMU::page_index_offset_pair_type page_index_and_offset;
+		MMU::page_entry_type frame;
 
         switch (instruction) {
         case CPU::MOVA_BASE_OPCODE:
@@ -34,9 +36,11 @@ namespace vm
             registers.ip += 2;
 
             break;
+
 		case CPU::LDA_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
@@ -51,8 +55,9 @@ namespace vm
 			break;
 
 		case CPU::LDB_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
@@ -67,8 +72,9 @@ namespace vm
 			break;
 
 		case CPU::LDC_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
@@ -82,24 +88,10 @@ namespace vm
 			}
 			break;
 
-
-/*
-				Get the page index and physical address offset from MMU for a virtual address in 'data'
-				Get the page from the current page table in MMU with the acquired index
-				If the page is invalid
-					Save the value of register 'a' in a temp. variable
-					Place the index of this page into register 'a'
-					Call the page fault handler in PIC (isr_4)
-					Restore register 'a'
-				or else
-					Calculate the physical address with the value in the page entry and the physical address offset
-					Read or write (for ST...) from/to the physical memory with the calculated address
-				
-					Increment the instruction pointer
-*/
 		case CPU::STA_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
@@ -114,8 +106,9 @@ namespace vm
 			break;
 
 		case CPU::STB_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
@@ -130,8 +123,9 @@ namespace vm
 			break;
 
 		case CPU::STC_BASE_OPCODE:
-			MMU::page_index_offset_pair_type page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
-			MMU::page_entry_type frame = _mmu.page_table->at(page_index_and_offset.first);
+
+			page_index_and_offset =  _mmu.GetPageIndexAndOffsetForVirtualAddress(data);
+			frame = _mmu.page_table->at(page_index_and_offset.first);
 			if (frame== MMU::INVALID_PAGE) {
 
 				int temp = registers.a;
